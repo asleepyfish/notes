@@ -373,3 +373,46 @@ Map<Boolean, List<Integer>> result = integerList.stream().collect(Collectors.par
 ```
 
 返回值的键仍然是布尔类型，但是它的分类是根据范围进行分类的，分区比较适合处理根据范围进行分类。
+
+# 5 综合案例
+
+## 5.1 List &lt;Bond&gt; bonds转成Map<PrimaryKey, List&lt;String&gt;>
+
+PrimaryKey是Bond的一个键（不要简单理解为主键）有两个字段，通过这个键去查找到对应的List&lt;Bond&gt;，后续再通过转换将List&lt;Bond&gt;中的bondName提取出来放到List中，存储成Map<PrimaryKey, List&lt;String&gt;>的结构
+
+其中假设Bond的字段有以下
+
+```java
+@Data
+public class Bond {
+    private Integer bondId;
+    
+    private String securityCode;
+    
+    private Integer marketNo;
+    
+    private String bondName;
+    
+    private BigDecimal price;
+}
+```
+
+PrimaryKey的字段如以下
+
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class PrimaryKey {
+    private String securityCode;
+
+    private Integer marketNo;
+}
+```
+
+转换代码如下
+
+```java
+Map<PrimaryKey, List<String>> groupMap = bonds.stream().collect(Collectors.groupingBy(bond -> new PrimaryKey(bond.getSecurityCode(), bond.getMarketNo()))).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stream().map(Bond::getBondName).distinct().collect(Collectors.toList())));
+```
+
